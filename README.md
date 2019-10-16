@@ -1,2 +1,16 @@
-# npm-publish-source
-一个可以在npm发布自定义react组件的模板源码
+# xiaokyo-affix
+
+xiaokyo 专用固钉组件
+
+      import Affix from 'xiaokyo-affix'
+
+      export default props=>{
+        return (
+          <Affix
+            offsetTop={100} //元素距离顶部距离多少触发固钉效果
+          >
+            your reactNode
+          </Affix>
+        )
+
+      }

@@ -3,48 +3,58 @@
  * params
  * @offsetTop #距离显示屏幕上方多少距离是触发
  */
-import React, { useState, useEffect } from 'react'
+import React, { Component } from 'react'
 
 const initClass = 'xiaok-affix'//内置容器样式
 const fixStyle = { position: 'fixed', zIndex: 10 }
-export default ({ children, offsetTop }) => {
-  const [style, setStyle] = useState({})
-  const [initRect, setinitRect] = useState({})
-  const [initOffset, setInitOffset] = useState({})
-
-  const handle = () => {//处理滚动事件
-    handleStyle()
+export default class Index extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      style: {},
+      initRect: {},
+      initOffset: {}
+    }
   }
 
-  const handleStyle = (_initRect, _initTop) => {//处理样式
+  render() {
+    const { style } = this.state
+    const { children } = this.props
+    return (
+      <div className={initClass} style={style}>
+        {children}
+      </div>
+    )
+  }
+
+  componentDidMount() {
+    let affixDom = document.getElementsByClassName(initClass)[0]
+    let _initTop = affixDom.offsetTop
+    let _initRect = affixDom.getClientRects()[0]
+    this.handleStyle(_initRect, _initTop)//初始固钉样式
+    this.setState({
+      initOffset: { top: _initTop },
+      initRect: _initRect
+    })
+    document.addEventListener('scroll', this.handle)
+  }
+  componentWillUnmount() {
+    document.removeEventListener('scroll', this.handle)
+  }
+
+  handle = () => this.handleStyle()
+  handleStyle = (_initRect, _initTop) => {//处理样式
+    const { initRect, initOffset } = this.state
+    const { offsetTop } = this.props
     let initRect1 = typeof _initRect === 'undefined' ? initRect : _initRect,
       initTop1 = typeof _initTop === 'undefined' ? initOffset.top : _initTop
     let _style = {}
     if (document.documentElement.scrollTop + (offsetTop || 0) >= initTop1) {
-      _style = ({ top: offsetTop == undefined ? 0 : offsetTop, left: initRect1.x, width: initRect1.width, height: initRect1.height, ...fixStyle })
+      _style = ({ top: offsetTop == undefined ? initRect1.y : offsetTop, left: initRect1.x, width: initRect1.width, height: initRect1.height, ...fixStyle })
     }
-    setStyle(_style)
+    this.setState({
+      style: _style
+    })
   }
 
-  useEffect(() => {//获得初始固钉容器的rect 这里只拿了top
-    let affixDom = document.getElementsByClassName(initClass)[0]
-    let _initTop = affixDom.offsetTop
-    let _initRect = affixDom.getClientRects()[0]
-    handleStyle(_initRect, _initTop)//初始固钉样式
-    setInitOffset({ ...initOffset, top: _initTop })
-    setinitRect(_initRect)
-  }, [])
-
-  useEffect(() => {//初始渲染和initRect改变后渲染，添加滚动事件
-    document.addEventListener('scroll', handle)
-    return () => document.removeEventListener('scroll', handle)
-  }, [initRect, initOffset])
-
-  return (
-    <>
-      <div className={initClass} style={style}>
-        {children}
-      </div>
-    </>
-  )
 }
